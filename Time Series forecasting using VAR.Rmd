@@ -1,0 +1,84 @@
+---
+title: "Time Series Forecasting using VAR model"
+author: "Swetha Ramanadham"
+date: "1/14/2020"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+#install.packages("vars")#install the package vars
+library(vars)
+```
+
+#### Get a basic understanding of the dataset
+```{r cars}
+data(Canada)
+dim(Canada)
+colnames(Canada)
+```
+
+#### To know the arguments of VAR function
+```{r pressure, echo=FALSE}
+args(VAR)
+```
+
+```{r}
+args(VARselect) #to know the arguments of VAR select function
+```
+
+#### Determining the best lags among 5 using varselect function
+```{r}
+VARselect(Canada, lag.max = 5, type = "const")
+```
+we have few ‘lag selection criteria’ like HQ, SIC, AIC and LR, etc.
+Generally, we choose the lag length for which the values of most of these lag length criteria are minimized. According to the more conservative SC(n) and HQ(n) criteria, the empirical optimal lag-order is 2.
+
+
+
+
+#### Building the VAR model using VAR() by specifying the no of lags
+```{r}
+var.2c <- VAR(Canada, p = 2, type = "const")
+```
+
+
+#### Testing causality to know if the real wage and productivity is causal to employment and unemployment.
+```{r}
+causality(var.2c, cause = c("rw", "prod"))
+causality(var.2c, cause = c("prod", "rw"))
+```
+As in all the tests for granger as 'p' value is less than 0.05 we reject the null hypothesis
+
+```{r}
+par(mar=c(1,1,1,1))#run only if plots are not displaying because of an error
+```
+
+
+```{r}
+plot(var.2c)
+```
+
+The above graph is a  representation of fit and residual of variable ‘e’
+
+#### Summary of estimation results
+```{r}
+summary(var.2c)
+```
+Form the above tables we can see that each variable is a linear function of the past values of itself and the past values of all the other variables
+
+
+#### Forecasting
+```{r}
+
+var.f10 <- predict(var.2c, n.ahead = 2, ci = 0.95) 
+names(var.f10)
+```
+
+
+```{r fig.height=10}
+plot(var.f10)
+```
+
+
